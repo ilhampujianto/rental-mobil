@@ -1,27 +1,29 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-// ✅ GET Customer by ID
+// GET /api/customers/:id
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
+  const { id } = context.params;
   const customer = await prisma.customer.findUnique({
-    where: { id: params.id },
+    where: { id },
   });
 
   return NextResponse.json(customer);
 }
 
-// ✅ UPDATE Customer by ID
+// PUT /api/customers/:id
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
+  const { id } = context.params;
   const body = await req.json();
 
   const updated = await prisma.customer.update({
-    where: { id: params.id },
+    where: { id },
     data: {
       name: body.name,
       email: body.email,
@@ -33,13 +35,14 @@ export async function PUT(
   return NextResponse.json(updated);
 }
 
-// ✅ DELETE Customer by ID
+// DELETE /api/customers/:id
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
+  const { id } = context.params;
   await prisma.customer.delete({
-    where: { id: params.id },
+    where: { id },
   });
 
   return NextResponse.json({ message: "Customer deleted" });
