@@ -1,39 +1,53 @@
 // app/api/register/route.ts
+
 import { NextResponse } from "next/server"
-import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
+import bcrypt from "bcryptjs"
 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
     const { name, email, password } = body
 
+    // Validasi input
+    if (!name || !email || !password) {
+      console.error("❌ Missing fields:", { name, email, password })
+      return NextResponse.json({ error: "All fields are required." }, { status: 400 })
+    }
+
+    // Cek apakah email sudah digunakan
     const existingUser = await prisma.user.findUnique({
       where: { email },
     })
 
     if (existingUser) {
-      return NextResponse.json({ user: null, message: "Email sudah terdaftar" }, { status: 400 })
+      console.error("❌ Email already in use:", email)
+      return NextResponse.json({ error: "Email already registered." }, { status: 409 })
     }
 
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    console.log("Hashed password:", hashedPassword)
-
-    const newUser = await prisma.user.create({
+    // Simpan user baru
+    const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
-        role: "USER",
       },
     })
 
-    const { password: _, ...userWithoutPass } = newUser
+    console.log("✅ User registered:", user.email)
 
-    return NextResponse.json({ user: userWithoutPass, message: "User created successfully" }, { status: 201 })
-
+    return NextResponse.json({
+      message: "User registered successfully.",
+      user: { id: user.id, name: user.name, email: user.email },
+    })
   } catch (error) {
-    return NextResponse.json({ message: "Server error", error }, { status: 500 })
+    console.error("🔥 REGISTER ERROR:", error)
+    return NextResponse.json(
+      { error: "Internal server error." },
+      { status: 500 }
+    )
   }
 }
