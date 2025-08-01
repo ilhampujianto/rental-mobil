@@ -3,21 +3,21 @@ import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   const customer = await prisma.customer.findUnique({
-    where: { id: params.id },
+    where: { id: context.params.id },
   })
   return NextResponse.json(customer)
 }
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   const body = await req.json()
   const updated = await prisma.customer.update({
-    where: { id: params.id },
+    where: { id: context.params.id },
     data: {
       name: body.name,
       email: body.email,
@@ -30,10 +30,10 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   await prisma.customer.delete({
-    where: { id: params.id },
+    where: { id: context.params.id },
   })
   return NextResponse.json({ message: "Customer deleted" })
 }
