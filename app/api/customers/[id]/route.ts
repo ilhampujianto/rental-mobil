@@ -1,18 +1,20 @@
 import { prisma } from "@/lib/prisma"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
-type Params = {
-  params: { id: string }
-}
-
-export async function GET(_: Request, { params }: Params) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const customer = await prisma.customer.findUnique({
     where: { id: params.id },
   })
   return NextResponse.json(customer)
 }
 
-export async function PUT(req: Request, { params }: Params) {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const body = await req.json()
   const updated = await prisma.customer.update({
     where: { id: params.id },
@@ -26,7 +28,10 @@ export async function PUT(req: Request, { params }: Params) {
   return NextResponse.json(updated)
 }
 
-export async function DELETE(_: Request, { params }: Params) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   await prisma.customer.delete({
     where: { id: params.id },
   })
