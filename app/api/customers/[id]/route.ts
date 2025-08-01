@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/customers/:id
 export async function GET(
-  req: NextRequest,
-  context: { params: { id: string } }
+  _req: NextRequest,
+  { params }: { params: Record<string, string> }
 ) {
-  const { id } = context.params;
+  const { id } = params;
   const customer = await prisma.customer.findUnique({
     where: { id },
   });
@@ -17,9 +17,9 @@ export async function GET(
 // PUT /api/customers/:id
 export async function PUT(
   req: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: Record<string, string> }
 ) {
-  const { id } = context.params;
+  const { id } = params;
   const body = await req.json();
 
   const updated = await prisma.customer.update({
@@ -37,10 +37,11 @@ export async function PUT(
 
 // DELETE /api/customers/:id
 export async function DELETE(
-  req: NextRequest,
-  context: { params: { id: string } }
+  _req: NextRequest,
+  { params }: { params: Record<string, string> }
 ) {
-  const { id } = context.params;
+  const { id } = params;
+
   await prisma.customer.delete({
     where: { id },
   });
