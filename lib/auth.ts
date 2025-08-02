@@ -1,10 +1,9 @@
 // lib/auth.ts
-import { PrismaAdapter } from "@next-auth/prisma-adapter"
-import { getServerSession } from "next-auth"
-import { AuthOptions } from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials"
-import { prisma } from "./prisma"
-import bcrypt from "bcryptjs"
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { getServerSession, type AuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { prisma } from "./prisma";
+import bcrypt from "bcryptjs";
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -23,60 +22,43 @@ export const authOptions: AuthOptions = {
         password: { label: "Password", type: "password" },
       },
       authorize: async (credentials) => {
-        try {
-          if (!credentials?.email || !credentials?.password) {
-            console.log("❌ Email atau password tidak diisi")
-            return null
-          }
-
-          console.log("📩 CREDENTIALS:", credentials)
-
-          const user = await prisma.user.findUnique({
-            where: { email: credentials.email },
-          })
-
-          console.log("🔍 USER FOUND:", user)
-
-          if (!user) {
-            console.log("❌ User tidak ditemukan:", credentials.email)
-            return null
-          }
-
-          const isValid = await bcrypt.compare(credentials.password, user.password)
-          console.log("🔐 PASSWORD VALID:", isValid)
-
-          if (!isValid) {
-            console.log("❌ Password salah untuk:", credentials.email)
-            console.log("Input password:", credentials.password)
-            console.log("Hashed password:", user.password)
-            return null
-          }
-
-          console.log("✅ LOGIN BERHASIL:", user.email)
-          return user
-        } catch (error) {
-          console.error("🔥 ERROR di authorize:", error)
-          return null
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Email atau password kosong");
         }
+
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email },
+        });
+
+        if (!user) {
+          throw new Error("User tidak ditemukan: " + credentials.email);
+        }
+
+        const isValid = await bcrypt.compare(credentials.password, user.password);
+        if (!isValid) {
+          throw new Error("Password salah");
+        }
+
+        return user;
       },
     }),
   ],
   callbacks: {
     async session({ token, session }) {
       if (token && session.user) {
-        session.user.id = token.id as string
-        session.user.role = token.role as string
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
       }
-      return session
+      return session;
     },
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
-        token.role = user.role
+        token.id = user.id;
+        token.role = user.role;
       }
-      return token
+      return token;
     },
   },
-}
+};
 
-export const getAuthSession = () => getServerSession(authOptions)
+export const getAuthSession = () => getServerSession(authOptions);
