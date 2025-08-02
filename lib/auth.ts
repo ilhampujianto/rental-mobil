@@ -23,30 +23,42 @@ export const authOptions: AuthOptions = {
         password: { label: "Password", type: "password" },
       },
       authorize: async (credentials) => {
-  if (!credentials?.email || !credentials?.password) return null
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            console.log("❌ Email atau password tidak diisi")
+            return null
+          }
 
-  const user = await prisma.user.findUnique({
-    where: { email: credentials.email },
-  })
+          console.log("📩 CREDENTIALS:", credentials)
 
-  if (!user) {
-    console.log("User tidak ditemukan:", credentials.email)
-    return null
-  }
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+          })
 
-  const isValid = await bcrypt.compare(credentials.password, user.password)
+          console.log("🔍 USER FOUND:", user)
 
-  if (!isValid) {
-    console.log("Password salah untuk:", credentials.email)
-    console.log("Input password:", credentials.password)
-    console.log("Hashed password:", user.password)
-    return null
-  }
+          if (!user) {
+            console.log("❌ User tidak ditemukan:", credentials.email)
+            return null
+          }
 
-  console.log("Login berhasil:", user.email)
-  return user
-}
-,
+          const isValid = await bcrypt.compare(credentials.password, user.password)
+          console.log("🔐 PASSWORD VALID:", isValid)
+
+          if (!isValid) {
+            console.log("❌ Password salah untuk:", credentials.email)
+            console.log("Input password:", credentials.password)
+            console.log("Hashed password:", user.password)
+            return null
+          }
+
+          console.log("✅ LOGIN BERHASIL:", user.email)
+          return user
+        } catch (error) {
+          console.error("🔥 ERROR di authorize:", error)
+          return null
+        }
+      },
     }),
   ],
   callbacks: {
